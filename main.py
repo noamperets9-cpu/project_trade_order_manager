@@ -19,6 +19,12 @@ ALPHA_VANTAGE_URL = "https://www.alphavantage.co/"
 # 4. Yahoo Finance
 YAHOO_FINANCE_URL = "https://finance.yahoo.com/"
 
+# 5. Apify Stock Price API
+APIFY_STOCK_API_URL = "https://apify.com/api/stock-price-api"
+
+# 6. Massive Stock Market API
+MASSIVE_API_URL = "https://massive.com/landing/stock-market-api-python"
+
 
 # =====================================================================
 # לוגיקת הפרויקט המקומית - שלב א'
