@@ -41,7 +41,7 @@ class TradeOrder(ABC):
         self._price = float(value)
 
 =======
->>>>>>> 21545bdd1f760e0b30af4106f8ab1b65b0d2f45c
+>>>>>>>
     @abstractmethod
     def get_priority(self) -> int:
         # מתודה אבסטרקטית שמחייבת את כל המחלקות היורשות להגדיר עדיפות בתור
