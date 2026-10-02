@@ -1,12 +1,11 @@
-
-
-# models.py
 from abc import ABC, abstractmethod
 import time
 
 class TradeOrder(ABC):
     # מחלקת בסיס אבסטרקטית המייצגת פקודת מסחר גנרית בארגון
     def __init__(self, order_id: str, symbol: str, quantity: int, price: float):
+        self._quantity = 0
+        self._price = 0.0
         self.order_id = order_id
         self.symbol = symbol
         self.quantity = quantity
@@ -26,7 +25,6 @@ class TradeOrder(ABC):
             raise ValueError("כמות המניות חייבת להיות מספר שלם וגדול מאפס.")
         self._quantity = value
 
-
     @property
     def price(self):
         # חשיפת המחיר בצורה בטוחה
@@ -39,7 +37,6 @@ class TradeOrder(ABC):
             raise ValueError("המחיר חייב להיות מספר חיובי וגדול מאפס.")
         self._price = float(value)
 
-
     @abstractmethod
     def get_priority(self) -> int:
         # מתודה אבסטרקטית שמחייבת את כל המחלקות היורשות להגדיר עדיפות בתור
@@ -47,9 +44,7 @@ class TradeOrder(ABC):
 
     def __str__(self):
         # ייצוג ידידותי למשתמש הקצה
-
         return f"פקודה {self.order_id}: סמל {self.symbol}, כמות {self.quantity}, מחיר {self.price}, מצב {self.status}"
-
 
     def __repr__(self):
         # ייצוג למפתחים לצורכי דיבאג 
@@ -116,7 +111,4 @@ class TradingPlatform:
         total = 0.0
         for order in self.orders_collection.values():
             total += order.quantity * order.price
-
         return total
-
-
