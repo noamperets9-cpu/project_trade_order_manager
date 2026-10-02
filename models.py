@@ -1,7 +1,6 @@
-<<<<<<< HEAD
-=======
+
+
 # models.py
->>>>>>> 21545bdd1f760e0b30af4106f8ab1b65b0d2f45c
 from abc import ABC, abstractmethod
 import time
 
@@ -27,7 +26,7 @@ class TradeOrder(ABC):
             raise ValueError("כמות המניות חייבת להיות מספר שלם וגדול מאפס.")
         self._quantity = value
 
-<<<<<<< HEAD
+
     @property
     def price(self):
         # חשיפת המחיר בצורה בטוחה
@@ -40,8 +39,7 @@ class TradeOrder(ABC):
             raise ValueError("המחיר חייב להיות מספר חיובי וגדול מאפס.")
         self._price = float(value)
 
-=======
->>>>>>> 21545bdd1f760e0b30af4106f8ab1b65b0d2f45c
+
     @abstractmethod
     def get_priority(self) -> int:
         # מתודה אבסטרקטית שמחייבת את כל המחלקות היורשות להגדיר עדיפות בתור
@@ -49,11 +47,9 @@ class TradeOrder(ABC):
 
     def __str__(self):
         # ייצוג ידידותי למשתמש הקצה
-<<<<<<< HEAD
+
         return f"פקודה {self.order_id}: סמל {self.symbol}, כמות {self.quantity}, מחיר {self.price}, מצב {self.status}"
-=======
-        return f"פקודה {self.order_id}: סמל {self.symbol}, כמות {self.quantity}, מצב {self.status}"
->>>>>>> 21545bdd1f760e0b30af4106f8ab1b65b0d2f45c
+
 
     def __repr__(self):
         # ייצוג למפתחים לצורכי דיבאג 
@@ -120,8 +116,7 @@ class TradingPlatform:
         total = 0.0
         for order in self.orders_collection.values():
             total += order.quantity * order.price
-<<<<<<< HEAD
+
         return total
-=======
-        return total
->>>>>>> 21545bdd1f760e0b30af4106f8ab1b65b0d2f45c
+
+
