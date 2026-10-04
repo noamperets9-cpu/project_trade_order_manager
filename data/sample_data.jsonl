@@ -1,1 +1,15 @@
-
+{"id": "ORD1001", "symbol": "AAPL", "action": "Buy", "quantity": 150, "price": 175.50}
+{"id": "ORD1002", "symbol": "MSFT", "action": "Sell", "quantity": 80, "price": 410.20}
+{"id": "ORD1003", "symbol": "TSLA", "action": "Buy", "quantity": 200, "price": 195.00}
+{"id": "ORD1004", "symbol": "NVDA", "action": "Sell", "quantity": 50, "price": 850.75}
+{"id": "ORD1005", "symbol": "GOOGL", "action": "Buy", "quantity": 120, "price": 140.30}
+{"id": "ORD1006", "symbol": "AMZN", "action": "Buy", "quantity": 300, "price": 178.10}
+{"id": "ORD1007", "symbol": "META", "action": "Sell", "quantity": 90, "price": 485.00}
+{"id": "ORD1008", "symbol": "NFLX", "action": "Buy", "quantity": 40, "price": 605.15}
+{"id": "ORD1009", "symbol": "AMD", "action": "Sell", "quantity": 250, "price": 160.80}
+{"id": "ORD1010", "symbol": "INTC", "action": "Buy", "quantity": 500, "price": 42.50}
+{"id": "ORD1011", "symbol": "BA", "action": "Sell", "quantity": 75, "price": 205.30}
+{"id": "ORD1012", "symbol": "DIS", "action": "Buy", "quantity": 110, "price": 112.40}
+{"id": "ORD1013", "symbol": "JPM", "action": "Sell", "quantity": 130, "price": 190.60}
+{"id": "ORD1014", "symbol": "V", "action": "Buy", "quantity": 60, "price": 280.90}
+{"id": "ORD1015", "symbol": "WMT", "action": "Buy", "quantity": 180, "price": 60.25}
