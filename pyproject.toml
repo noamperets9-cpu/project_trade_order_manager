@@ -1,0 +1,18 @@
+[project]
+name = "tradeinsight-command"
+version = "0.2.0"
+description = "מערכת לניתוב ובקרת פקודות מסחר (סימולציה מקומית)"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools]
+# הקוד רץ ישירות מהתיקייה, אין חבילה להתקנה
+packages = []
+py-modules = []
+
+[tool.pytest.ini_options]
+pythonpath = ["project_name"]
+testpaths = ["tests"]

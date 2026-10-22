@@ -1,14 +1,17 @@
 import json
-from models import MarketOrder
+from factories import OrderFactory
 
 # ============================================================
 #                 סעיף 4 - עיבוד קובץ בהדרגה
 # ============================================================
 
-def load_orders_from_file(filepath: str):
+def load_orders_from_file(filepath: str, factory: OrderFactory = None):
     """
     מחולל (Generator) הקורא נתונים מקובץ שורה-שורה וממיר אותם לאובייקטים ללא העמסת הזיכרון
     """
+    # ה-Factory מועבר מבחוץ; אם לא הועבר, משתמשים במפעל ברירת המחדל
+    factory = factory or OrderFactory()
+
     # שימוש בקבוצה לשמירת מזהים קיימים ומניעת כפילויות במערכת
     seen_ids = set()
 
@@ -31,8 +34,8 @@ def load_orders_from_file(filepath: str):
                 if data["id"] in seen_ids:
                     continue
 
-                # המרת המילון לאובייקט בעזרת מתודת מחלקה ייעודית
-                order = MarketOrder.from_dict(data)
+                # המרת המילון לאובייקט מהסוג המתאים (רגילה / Stop-Loss) בעזרת ה-Factory
+                order = factory.create(data)
 
                 # הוספת המזהה לקבוצת המזהים שכבר נבדקו
                 seen_ids.add(data["id"])
@@ -43,6 +46,6 @@ def load_orders_from_file(filepath: str):
             except json.JSONDecodeError:
                 # התעלמות משורות שאינן בפורמט תקין של קובץ הנתונים
                 continue
-            except ValueError:
+            except (ValueError, KeyError):
                 # התעלמות מרשומות שחסרים בהן שדות או שאינן חוקיות
                 continue
