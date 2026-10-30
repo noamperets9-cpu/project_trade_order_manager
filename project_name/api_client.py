@@ -1,25 +1,46 @@
 import requests
+import time
 import logging
-from .config import YAHOO_FINANCE_BASE_URL, API_TIMEOUT
+from requests.exceptions import Timeout, ConnectionError, HTTPError
+
+# ייבוא ההגדרות שיצרנו בקובץ config.py
+from project_trade_order_manager.config import MASSIVE_API_URL, API_TIMEOUT, MAX_RETRIES
 
 logger = logging.getLogger(__name__)
 
-def fetch_stock_price(symbol: str) -> float:
+def fetch_stock_price(symbol: str) -> dict:
     """
-    מבצע קריאת GET ל-API החיצוני כדי למשוך את שער המניה.
-    אם יש כשל ברשת או פענוח, הקוד פשוט יקרוס.
+    מושך נתוני מניה משירות חיצוני.
+    מבצע עד 3 ניסיונות במקרה של כשל תקשורת, אך זורק שגיאה מידית במקרים של נתונים פגומים.
     """
-    url = f"{YAHOO_FINANCE_BASE_URL}/{symbol}"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    # החלף את נתיב ה-URL הספציפי בהתאם למבנה של ה-API שבחרת
+    url = f"{MASSIVE_API_URL}/quote/{symbol}" 
     
-    # שליחת בקשה בודדת ללא Retry (כי אין לנו Try/Except)
-    response = requests.get(url, headers=headers, timeout=API_TIMEOUT)
-    
-    # נוודא שהבקשה עברה לפני שננסה לפענח JSON
-    response.raise_for_status()
-    
-    data = response.json()
-    
-    # אין הגנה מ-KeyError: אם המבנה שונה, הקוד ייפול.
-    price = data['chart']['result'][0]['meta']['regularMarketPrice']
-    return float(price)
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            # שימוש ב-timeout מתוך קובץ ההגדרות
+            response = requests.get(url, timeout=API_TIMEOUT)
+            
+            # בדיקת קוד התגובה (זורק חריגה עבור שגיאות 4xx ו-5xx)
+            response.raise_for_status()
+            
+            # פענוח ה-JSON
+            data = response.json()
+            
+            # בדיקת השדות הדרושים
+            if not data or "price" not in data:
+                raise KeyError(f"Missing required 'price' field for {symbol}")
+                
+            return data
+            
+        except (ConnectionError, Timeout) as e:
+            logger.warning(f"Network error on attempt {attempt}/{MAX_RETRIES} for {symbol}: {e}")
+            if attempt == MAX_RETRIES:
+                logger.error(f"Failed to fetch data for {symbol} after {MAX_RETRIES} attempts.")
+                raise  # מיצוי ניסיונות - זורק את השגיאה הלאה
+            
+            time.sleep(2)  # המתנה קצרה לפני ניסיון חוזר
+            
+        except HTTPError as e:
+            logger.error(f"HTTP Error for {symbol}: {e}")
+            raise  # שגיאת שרת או בקשה לא תקינה - לא מנסים שוב אוטומטית
