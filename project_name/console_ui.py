@@ -5,7 +5,9 @@ import sys
 import textwrap
 
 try:
-    from bidi import get_display
+    # המימוש של bidi.algorithm גם הופך סוגריים בטקסט עברי (L4 Mirroring), כך ש-"(...)" ו-"[...]"
+    # לא מוצגים הפוך. ה-get_display הראשי של הספרייה (גרסה 0.5 ומעלה) מדלג על השלב הזה.
+    from bidi.algorithm import get_display
 except ImportError:  # בלי python-bidi העברית מודפסת כמו שהיא
     get_display = None
 
@@ -160,7 +162,8 @@ def plain(message: str = ""):
 
 def kv(label: str, value):
     """ שורת "שם: ערך" עם הדגשת הערך """
-    print("  " + paint("•", CYAN) + " " + rtl(f"{label}:") + " " + paint(rtl(value), BOLD))
+    # הנקודתיים מחוץ לסידור, כדי שיופיעו בין השם לערך ולא בצד השני של השם
+    print("  " + paint("•", CYAN) + " " + rtl(label) + ": " + paint(rtl(value), BOLD))
 
 
 def subheading(text: str):

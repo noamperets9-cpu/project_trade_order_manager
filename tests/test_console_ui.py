@@ -36,6 +36,12 @@ def test_edge_spaces_stay_in_place(bidi_on):
     assert ui.rtl("  שלום ") == "  םולש "
 
 
+def test_brackets_are_mirrored_in_hebrew(bidi_on):
+    # בטרמינל משמאל לימין, "[מדומה]" חייב לצאת "[המודמ]" ולא "]המודמ[" (סוגריים הפוכים)
+    assert ui.rtl("[מדומה]") == "[המודמ]"
+    assert ui.rtl("(99% מהתקציב)") == "(ביצקתהמ 99%)"
+
+
 def test_disabled_bidi_keeps_logical_order(monkeypatch):
     # למשל כשהפלט מופנה לקובץ: שם הטקסט צריך להישמר בסדר הרגיל
     monkeypatch.setattr(ui, "USE_BIDI", False)
