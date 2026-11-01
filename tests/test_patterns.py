@@ -2,11 +2,11 @@ import json
 
 import pytest
 
-from factories import OrderFactory
-from models import MarketOrder, StopLossOrder, Portfolio
-from repository import load_orders_from_file
-from services import OrderApprovalService
-from strategies import FullBalancePolicy, RiskLimitPolicy
+from project_name.factories import OrderFactory
+from project_name.models import MarketOrder, StopLossOrder, Portfolio
+from project_name.repository import load_orders_from_file
+from project_name.services import OrderApprovalService
+from project_name.strategies import FullBalancePolicy, RiskLimitPolicy
 
 
 # ============================================================

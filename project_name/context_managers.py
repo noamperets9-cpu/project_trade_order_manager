@@ -1,5 +1,5 @@
 import time
-from models import TradeOrder
+from .models import TradeOrder
 
 # ============================================================
 #                 סעיף 5 - Context Manager מותאם אישית

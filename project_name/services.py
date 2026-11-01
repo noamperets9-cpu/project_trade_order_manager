@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass
 from typing import Callable, Iterable
 
-from models import TradeOrder, Portfolio
-from strategies import ApprovalPolicy
+from .models import TradeOrder, Portfolio
+from .strategies import ApprovalPolicy
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-from models import TradeOrder, MarketOrder, StopLossOrder
+from .models import TradeOrder, MarketOrder, StopLossOrder
 
 # ============================================================
 #           שלב 2, סעיף 3 - תבנית Factory ליצירת פקודות

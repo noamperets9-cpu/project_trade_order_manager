@@ -32,3 +32,9 @@ API_TIMEOUT = 10
 
 # מספר ניסיונות חוזרים (Retries) במקרה של כשל רשת
 MAX_RETRIES = 3
+
+# זמן המתנה בין ניסיונות חוזרים (בשניות)
+RETRY_DELAY = 2
+
+# סמל שער הדולר-שקל ב-Yahoo Finance (משמש לבקרת התקציב בשקלים)
+USD_ILS_SYMBOL = "ILS=X"

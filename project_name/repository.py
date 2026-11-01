@@ -1,5 +1,5 @@
 import json
-from factories import OrderFactory
+from .factories import OrderFactory
 
 # ============================================================
 #                 סעיף 4 - עיבוד קובץ בהדרגה
