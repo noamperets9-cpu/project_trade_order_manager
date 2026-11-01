@@ -374,7 +374,13 @@ def main(online: bool = False, use_ai: bool = True):
     if not use_ai:
         ui.note("שלב ה-AI כובה (--no-ai)")
     elif not analyzer.is_available:
-        ui.warn(f"הניתוח לא זמין: {analyzer.unavailable_reason}. שאר התוצאות לא הושפעו")
+        # ללא מפתח: לא קורסים, מדלגים על ה-AI ועל הצ'אט, ומציגים סיכום מקומי (סעיף 7.1)
+        ui.warn(analyzer.unavailable_reason)
+        for line in GeminiAnalyzer.simulated_summary(
+                results_by_policy={p.name: r for p, r in zip(policies, results_by_policy)},
+                balances={p.name: pf.balance for p, pf in zip(policies, portfolios)},
+                initial_budget=DEMO_BUDGET_ILS):
+            ui.info(f"{line} {ui.tag_simulated()}")
     else:
         # הדוח כולל את פקודות הקנייה שנבדקו ואת פקודות ה-Stop-Loss (גם מכירות)
         report_orders = buy_orders + [o for o in all_orders if o.get_priority() == 1 and o not in buy_orders]

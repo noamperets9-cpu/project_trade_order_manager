@@ -79,11 +79,24 @@ def test_report_contains_run_data(report):
 
 # ---------- זמינות ----------
 
-def test_no_api_key_means_not_available():
-    analyzer = GeminiAnalyzer(api_key="")
+@pytest.mark.parametrize("missing_key", [None, ""])  # os.getenv מחזיר None כשאין מפתח
+def test_no_api_key_means_not_available(missing_key):
+    analyzer = GeminiAnalyzer(api_key=missing_key)
     assert analyzer.is_available is False
+    assert "No API key detected" in analyzer.unavailable_reason
     assert analyzer.summarize("report") is None
     assert analyzer.start_chat("report") is False
+
+
+def test_simulated_summary_works_without_key_or_network():
+    results = {"Full": [ApprovalResult("O1", True, 4000.0, ""), ApprovalResult("O2", False, 9000.0, "")],
+               "Strict": [ApprovalResult("O1", False, 4000.0, ""), ApprovalResult("O2", False, 9000.0, "")]}
+    balances = {"Full": 6000.0, "Strict": 10_000.0}
+
+    lines = GeminiAnalyzer.simulated_summary(results, balances, initial_budget=10_000)
+
+    assert lines[0] == "Full: אושרו 1 מתוך 2 פקודות, נוצלו 4,000.00 ש\"ח (40% מהתקציב)"
+    assert lines[-1] == "היתרה הגבוהה ביותר נשארה במדיניות: Strict (10,000.00 ש\"ח)"
 
 
 # ---------- סיכום ----------

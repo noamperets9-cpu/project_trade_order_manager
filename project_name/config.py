@@ -49,7 +49,7 @@ try:
 except ImportError:
     pass  # בלי python-dotenv עדיין אפשר להגדיר את המפתח כמשתנה סביבה
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # None אם לא הוגדר - המערכת תדלג על שלב ה-AI
 
 # אפשר להחליף מודל דרך GEMINI_MODEL ב-.env, בלי לשנות קוד
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.5-flash-lite"

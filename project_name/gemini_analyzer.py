@@ -26,6 +26,9 @@ SYSTEM_INSTRUCTION = (
 )
 
 
+NO_API_KEY_MESSAGE = "[Gemini] No API key detected in .env. Skipping AI analysis, running simulated summary."
+
+
 class GeminiAnalyzer:
     def __init__(self, api_key: str = GEMINI_API_KEY, model: str = GEMINI_MODEL, client=None):
         """ מאתחל את המנתח. אם לא הועבר לקוח, נוצר לקוח אמיתי של google-genai לפי המפתח """
@@ -37,10 +40,11 @@ class GeminiAnalyzer:
 
     def _create_client(self, api_key: str):
         """ יוצר לקוח של Gemini, או מחזיר None (ושומר את הסיבה) אם אין מפתח או שהספרייה לא מותקנת """
-        if genai is None:
-            self.unavailable_reason = "הספרייה google-genai לא מותקנת (הריצו: pip install -e .)"
-        elif not api_key:
-            self.unavailable_reason = "לא הוגדר GEMINI_API_KEY (העתיקו את .env.example ל-.env והוסיפו מפתח)"
+        if not api_key:
+            # אין מפתח (None או ריק) - מצב תקין בהרצת ברירת המחדל, ללא רשת וללא מפתחות
+            self.unavailable_reason = NO_API_KEY_MESSAGE
+        elif genai is None:
+            self.unavailable_reason = "[Gemini] google-genai is not installed (run: pip install -e .). Skipping AI analysis."
         else:
             try:
                 return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS))
@@ -48,7 +52,7 @@ class GeminiAnalyzer:
                 self.unavailable_reason = f"יצירת החיבור ל-Gemini נכשלה ({type(error).__name__})"
                 logger.error("יצירת לקוח Gemini נכשלה: %s", error)
                 return None
-        logger.warning("%s - שלב ניתוח ה-AI ידולג", self.unavailable_reason)
+        logger.warning(self.unavailable_reason)
         return None
 
     @property
@@ -87,6 +91,23 @@ class GeminiAnalyzer:
             ]
 
         return "\n".join(lines)
+
+    @staticmethod
+    def simulated_summary(results_by_policy: dict, balances: dict, initial_budget: float) -> list:
+        """
+        סיכום מקומי (ללא רשת וללא מפתח) לתוצאות בקרת התקציב.
+        משמש בהרצת ברירת המחדל כשאין GEMINI_API_KEY, כדי שההדגמה תסתיים בסיכום גם בלי AI.
+        """
+        lines = []
+        for policy_name, results in results_by_policy.items():
+            approved = sum(1 for r in results if r.approved)
+            used = initial_budget - balances[policy_name]
+            lines.append(f"{policy_name}: אושרו {approved} מתוך {len(results)} פקודות, "
+                         f"נוצלו {used:,.2f} ש\"ח ({used / initial_budget:.0%} מהתקציב)")
+        if balances:
+            best = max(balances, key=balances.get)
+            lines.append(f"היתרה הגבוהה ביותר נשארה במדיניות: {best} ({balances[best]:,.2f} ש\"ח)")
+        return lines
 
     # ---------- קריאות ל-API ----------
 
