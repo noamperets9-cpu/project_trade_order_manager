@@ -20,6 +20,7 @@ from project_name.services import OrderApprovalService
 from project_name.api_client import fetch_stock_price, fetch_usd_ils_rate
 from project_name.async_processing import collect_statuses_serially, collect_statuses_concurrently
 from project_name.threaded_processing import SafePortfolioManager
+from project_name.gemini_analyzer import GeminiAnalyzer
 from project_name import console_ui as ui
 
 # שער להדגמה ללא רשת (ברירת המחדל). עם הדגל --online השער נמשך מ-Yahoo Finance
@@ -58,11 +59,77 @@ def decision_label(result) -> str:
     return ui.paint("✘ rejected", ui.RED)
 
 
+def print_ai_text(text: str):
+    """ מדפיס תשובה של Gemini שורה אחר שורה, בפורמט של שאר הפלט """
+    for line in text.splitlines():
+        if line.strip():
+            ui.info(line.strip())
+
+
+def print_token_usage(usage):
+    """ מציג כמה טוקנים נשלחו והתקבלו בבקשה האחרונה """
+    if usage is not None:
+        ui.note(f"[sent: {usage.prompt_token_count} tokens, "
+                f"received: {usage.candidates_token_count} tokens]")
+
+
+def print_chat_history(analyzer: GeminiAnalyzer):
+    """ מציג את כל ההודעות בשיחה עד עכשיו """
+    history = analyzer.history()
+    if not history:
+        ui.note("אין עדיין הודעות בשיחה")
+        return
+    for role, text in history:
+        label = ui.paint("You", ui.BOLD, ui.CYAN) if role == "user" else ui.paint("AI", ui.BOLD, ui.MAGENTA)
+        print(f"  {label}:")
+        print_ai_text(text)
+
+
+def run_chat_session(analyzer: GeminiAnalyzer, report: str):
+    """ לולאת צ'אט: המשתמש שואל שאלות על דוח ההרצה עד שהוא מקליד exit """
+    try:
+        print()
+        ui.plain("האם תרצה לשאול את הצ'אט שאלות נוספות על הדוח? (הקש 1 לאישור, כל מקש אחר ליציאה)")
+        choice = ui.ask("  > ")
+    except (EOFError, KeyboardInterrupt):
+        return  # הרצה לא אינטראקטיבית - אין שאלות נוספות
+
+    if choice.strip() != "1":
+        return
+
+    if not analyzer.start_chat(report):
+        ui.error("לא ניתן לפתוח צ'אט עם Gemini כרגע. פירוט הכשל נשמר ב-app.log")
+        return
+
+    ui.note("הצ'אט פתוח. כתבו שאלה על הדוח, history להצגת השיחה, או exit ליציאה")
+    while True:
+        try:
+            question = ui.ask("\n  " + ui.paint("You", ui.BOLD, ui.CYAN) + ": ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if question.lower() == "exit":
+            break
+        if question.lower() == "history":
+            print_chat_history(analyzer)
+            continue
+        if not question:
+            continue
+
+        answer = analyzer.ask(question)
+        if answer:
+            print("  " + ui.paint("+++ AI +++", ui.BOLD, ui.MAGENTA))
+            print_ai_text(answer)
+            print_token_usage(analyzer.last_usage)
+        else:
+            ui.warn("לא התקבלה תשובה (פירוט ב-app.log). אפשר לנסות שוב או לכתוב exit")
+    ui.ok("הצ'אט נסגר")
+
+
 # ============================================================
 #                 חלק ה' - תרחיש ההדגמה ב-main.py
 # ============================================================
 
-def main(online: bool = False):
+def main(online: bool = False, use_ai: bool = True):
     """
     תרחיש ההדגמה המלא: קורא נתונים באופן עצל, בונה אובייקטים,
     מדגים שימוש במבני נתונים ותורים, מפעיל איטרטורים,
@@ -70,7 +137,7 @@ def main(online: bool = False):
     """
     ui.banner("TradeInsight Command", "סימולציה של מערכת לניתוב ובקרת פקודות מסחר")
     mode = "מול השירות האמיתי (Yahoo Finance)" if online else "ללא רשת - נתונים מדומים"
-    print(f"  מצב הרצה: {mode}")
+    ui.plain(f"מצב הרצה: {mode}")
 
     # בניית נתיב מוחלט לקובץ ביחס למיקום קובץ הסקריפט הנוכחי
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -205,9 +272,11 @@ def main(online: bool = False):
     ui.kv("ה-Factory יצר פקודות Stop-Loss", stop_loss_count)
     ui.kv("ה-Factory יצר פקודות שוק", len(all_orders) - stop_loss_count)
     rate_provider = demo_rate_provider
+    used_rate = DEMO_USD_ILS_RATE
     if online:
         try:
             live_rate = fetch_usd_ils_rate()
+            used_rate = live_rate
             rate_provider = lambda: live_rate
             ui.kv("שער דולר-שקל", f"{live_rate:.4f} {ui.tag_live()}")
         except Exception as error:
@@ -297,6 +366,34 @@ def main(online: bool = False):
     ui.kv("יתרה סופית", ui.ils(shared_portfolio.balance))
     ui.note("בלי Lock שני הסוחרים היו יכולים לעבור את בדיקת היתרה יחד")
 
+    # ==========================================
+    # 12. ניתוח AI וצ'אט על תוצאות בקרת התקציב (Gemini)
+    # ==========================================
+    analyzer = GeminiAnalyzer()
+    ui.section(12, "ניתוח מנהל הסיכונים", f"Gemini · {analyzer.model}")
+    if not use_ai:
+        ui.note("שלב ה-AI כובה (--no-ai)")
+    elif not analyzer.is_available:
+        ui.warn("הניתוח לא זמין: חסר GEMINI_API_KEY בקובץ .env. שאר התוצאות לא הושפעו")
+    else:
+        # הדוח כולל את פקודות הקנייה שנבדקו ואת פקודות ה-Stop-Loss (גם מכירות)
+        report_orders = buy_orders + [o for o in all_orders if o.get_priority() == 1 and o not in buy_orders]
+        report = GeminiAnalyzer.build_report(
+            orders=report_orders,
+            results_by_policy={p.name: r for p, r in zip(policies, results_by_policy)},
+            balances={p.name: pf.balance for p, pf in zip(policies, portfolios)},
+            rate=used_rate,
+            initial_budget=DEMO_BUDGET_ILS,
+        )
+        summary = analyzer.summarize(report)
+        if summary:
+            print_ai_text(summary)
+            print_token_usage(analyzer.last_usage)
+        else:
+            ui.warn("הקריאה ל-Gemini נכשלה (פירוט ב-app.log). שאר התוצאות לא הושפעו")
+        # הצ'אט מוצע גם אם הסיכום נכשל - לרוב זו תקלה זמנית בשרת
+        run_chat_session(analyzer, report)
+
     ui.footer("סיום תרחיש ההדגמה")
 
 
@@ -304,8 +401,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TradeInsight Command - הדגמת המערכת")
     parser.add_argument("--online", action="store_true",
                         help="משיכת שער ומחיר אמיתיים מ-Yahoo Finance (ברירת המחדל: נתונים מדומים, ללא רשת)")
+    parser.add_argument("--no-ai", action="store_true",
+                        help="דילוג על שלב הניתוח והצ'אט של Gemini בסוף ההדגמה")
     # הלוגים (פעולות וכשלים, ללא סודות) נכתבים לקובץ, כדי שהפלט בקונסול יישאר קריא
     logging.basicConfig(filename="app.log", level=logging.INFO, encoding="utf-8",
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    main(online=parser.parse_args().online)
-    print(ui.paint("  פירוט פעולות וכשלים נשמר בקובץ app.log", ui.DIM))
+    args = parser.parse_args()
+    main(online=args.online, use_ai=not args.no_ai)
+    print("  " + ui.paint(ui.rtl("פירוט פעולות וכשלים נשמר בקובץ app.log"), ui.DIM))

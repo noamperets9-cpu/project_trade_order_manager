@@ -38,3 +38,21 @@ RETRY_DELAY = 2
 
 # סמל שער הדולר-שקל ב-Yahoo Finance (משמש לבקרת התקציב בשקלים)
 USD_ILS_SYMBOL = "ILS=X"
+
+# =====================================================================
+# Google Gemini - ניתוח AI וצ'אט בסוף תרחיש ההדגמה
+# =====================================================================
+# המפתח נטען מקובץ .env המקומי (לא נשמר ב-Git) או ממשתנה סביבה
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # בלי python-dotenv עדיין אפשר להגדיר את המפתח כמשתנה סביבה
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+# אפשר להחליף מודל דרך GEMINI_MODEL ב-.env, בלי לשנות קוד
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.5-flash-lite"
+
+# זמן המתנה מקסימלי לתשובת Gemini (במילישניות)
+GEMINI_TIMEOUT_MS = 60_000
