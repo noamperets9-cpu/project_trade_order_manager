@@ -30,24 +30,26 @@ class GeminiAnalyzer:
     def __init__(self, api_key: str = GEMINI_API_KEY, model: str = GEMINI_MODEL, client=None):
         """ מאתחל את המנתח. אם לא הועבר לקוח, נוצר לקוח אמיתי של google-genai לפי המפתח """
         self.model = model
+        self.unavailable_reason = ""  # למה אין חיבור, כדי להציג למשתמש סיבה מדויקת
         self.client = client if client is not None else self._create_client(api_key)
         self._chat = None
         self.last_usage = None  # ספירת הטוקנים של התשובה האחרונה (נשלחו / התקבלו)
 
-    @staticmethod
-    def _create_client(api_key: str):
-        """ יוצר לקוח של Gemini, או מחזיר None אם אין מפתח או שהספרייה לא מותקנת """
-        if not api_key:
-            logger.warning("GEMINI_API_KEY לא מוגדר - שלב ניתוח ה-AI ידולג")
-            return None
+    def _create_client(self, api_key: str):
+        """ יוצר לקוח של Gemini, או מחזיר None (ושומר את הסיבה) אם אין מפתח או שהספרייה לא מותקנת """
         if genai is None:
-            logger.warning("הספרייה google-genai לא מותקנת - שלב ניתוח ה-AI ידולג")
-            return None
-        try:
-            return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS))
-        except Exception as error:
-            logger.error("יצירת לקוח Gemini נכשלה: %s", error)
-            return None
+            self.unavailable_reason = "הספרייה google-genai לא מותקנת (הריצו: pip install -e .)"
+        elif not api_key:
+            self.unavailable_reason = "לא הוגדר GEMINI_API_KEY (העתיקו את .env.example ל-.env והוסיפו מפתח)"
+        else:
+            try:
+                return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS))
+            except Exception as error:
+                self.unavailable_reason = f"יצירת החיבור ל-Gemini נכשלה ({type(error).__name__})"
+                logger.error("יצירת לקוח Gemini נכשלה: %s", error)
+                return None
+        logger.warning("%s - שלב ניתוח ה-AI ידולג", self.unavailable_reason)
+        return None
 
     @property
     def is_available(self) -> bool:
