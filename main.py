@@ -369,12 +369,12 @@ def main(online: bool = False, use_ai: bool = True):
     # ==========================================
     # 12. ניתוח AI וצ'אט על תוצאות בקרת התקציב (Gemini)
     # ==========================================
-    analyzer = GeminiAnalyzer()
+    analyzer = GeminiAnalyzer()  # המפתח נטען מ-.env / משתנה סביבה דרך config.py
     ui.section(12, "ניתוח מנהל הסיכונים", f"Gemini · {analyzer.model}")
     if not use_ai:
         ui.note("שלב ה-AI כובה (--no-ai)")
     elif not analyzer.is_available:
-        ui.warn("הניתוח לא זמין: חסר GEMINI_API_KEY בקובץ .env. שאר התוצאות לא הושפעו")
+        ui.warn(f"הניתוח לא זמין: {analyzer.unavailable_reason}. שאר התוצאות לא הושפעו")
     else:
         # הדוח כולל את פקודות הקנייה שנבדקו ואת פקודות ה-Stop-Loss (גם מכירות)
         report_orders = buy_orders + [o for o in all_orders if o.get_priority() == 1 and o not in buy_orders]
