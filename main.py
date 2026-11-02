@@ -16,6 +16,7 @@ from project_name.iterators import OrderCollection, run_lazy_pipeline
 from project_name.context_managers import OrderProcessingContext
 from project_name.strategies import FullBalancePolicy, RiskLimitPolicy
 from project_name.services import OrderApprovalService
+from project_name.reports import summarize_policy
 from project_name.api_client import fetch_stock_price, fetch_usd_ils_rate
 from project_name.async_processing import collect_statuses_serially, collect_statuses_concurrently
 from project_name.threaded_processing import SafePortfolioManager, run_concurrent_reservations
@@ -308,9 +309,10 @@ def main(online: bool = False, use_ai: bool = True):
 
     ui.subheading("סיכום לפי מדיניות")
     for policy, results, portfolio in zip(policies, results_by_policy, portfolios):
-        approved = sum(1 for r in results if r.approved)
+        summary = summarize_policy(results, DEMO_BUDGET_ILS)
         ui.info(f"{policy.name}")
-        ui.note(f"approved {approved}/{len(results)} | left {ui.ils(portfolio.balance)}")
+        ui.note(f"approved {summary.approved}/{len(results)} | reserved {ui.ils(summary.reserved_ils)} "
+                f"({summary.utilization_pct}%) | left {ui.ils(portfolio.balance)}")
 
     # ==========================================
     # 9. מחיר מניה מהשירות החיצוני (סעיף 2)
