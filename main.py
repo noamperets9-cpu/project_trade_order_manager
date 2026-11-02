@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import logging
 import os
-import threading
 import time
 
 from project_name.models import TradingPlatform, Portfolio
@@ -19,7 +18,7 @@ from project_name.strategies import FullBalancePolicy, RiskLimitPolicy
 from project_name.services import OrderApprovalService
 from project_name.api_client import fetch_stock_price, fetch_usd_ils_rate
 from project_name.async_processing import collect_statuses_serially, collect_statuses_concurrently
-from project_name.threaded_processing import SafePortfolioManager
+from project_name.threaded_processing import SafePortfolioManager, run_concurrent_reservations
 from project_name.gemini_analyzer import GeminiAnalyzer
 from project_name import console_ui as ui
 
@@ -355,11 +354,7 @@ def main(online: bool = False, use_ai: bool = True):
     ui.section(11, "שני סוחרים מול אותה יתרה", "Threads & Lock")
     shared_portfolio = Portfolio(initial_balance=5000)
     manager = SafePortfolioManager(shared_portfolio)
-    traders = [threading.Thread(target=manager.attempt_reservation, args=(3000,)) for _ in range(2)]
-    for t in traders:
-        t.start()
-    for t in traders:
-        t.join()
+    run_concurrent_reservations(manager, [3000, 3000])  # שני Threads: start לשניהם, ואז join
     ui.kv("יתרה התחלתית", ui.ils(5000))
     ui.kv("בקשות שריון", "2 × ₪3,000.00")
     ui.kv("אושרו", manager.successful_reservations)
