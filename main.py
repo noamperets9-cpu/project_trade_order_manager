@@ -332,13 +332,14 @@ def main(online: bool = False, use_ai: bool = True):
     # ==========================================
     ui.section(10, "איסוף סטטוסים במקביל", "asyncio")
     order_ids = [o.order_id for o in all_orders[:3]]
+    delays = [0.6, 0.2, 0.4]  # זמני תגובה שונים: הפקודה הראשונה מסיימת אחרונה
 
     start = time.perf_counter()
-    serial_results = asyncio.run(collect_statuses_serially(order_ids))
+    serial_results = asyncio.run(collect_statuses_serially(order_ids, delays))
     serial_time = time.perf_counter() - start
 
     start = time.perf_counter()
-    async_results = asyncio.run(collect_statuses_concurrently(order_ids))
+    async_results = asyncio.run(collect_statuses_concurrently(order_ids, delays))
     async_time = time.perf_counter() - start
 
     ui.kv("סדרתי", f"{serial_time:.2f}s")
