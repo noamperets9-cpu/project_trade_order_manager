@@ -78,6 +78,19 @@ def build_order_dictionaries(orders_list: list):
 
     return orders_by_id, symbol_counts
 
+
+def describe_symbol_counts(symbol_counts: dict) -> list:
+    """
+    מפיק שורת סיכום לכל מניה מתוך מילון הספירה, במעבר על items() עם unpacking
+    """
+    lines = []
+
+    # פירוק כל זוג (מפתח, ערך) לשני משתנים כבר בכותרת הלולאה
+    for symbol, count in symbol_counts.items():
+        lines.append(f"{symbol}: {count}")
+
+    return lines
+
 # ============================================================
 #                 סעיף 4 - תור FIFO באמצעות deque
 # ============================================================
