@@ -162,8 +162,12 @@ class Portfolio:
             self.holdings[symbol] = quantity
 
     def __str__(self):
-        "" "מחזיר מחרוזת המציגה את יתרת הכסף ומלאי המניות בתיק """
+        """ מחזיר מחרוזת המציגה את יתרת הכסף ומלאי המניות בתיק """
         return f"יתרה פנויה: {self.balance} | מלאי מניות: {self.holdings}"
+
+    def __repr__(self):
+        """ מחזיר ייצוג טכני של התיק לצורכי פיתוח """
+        return f"Portfolio(balance={self.balance}, holdings={self.holdings})"
 
 
 # ============================================================
@@ -203,3 +207,11 @@ class TradingPlatform:
     def __len__(self):
         """ מחזיר את מספר הפקודות הפעילות הקיימות כעת במערכת """
         return len(self.orders_collection)
+
+    def __str__(self):
+        """ מחזיר סיכום קריא של הפלטפורמה: מספר הפקודות והשווי הכולל """
+        return f"פלטפורמת מסחר: {len(self)} פקודות, שווי כולל {self.get_total_volume()}"
+
+    def __repr__(self):
+        """ מחזיר ייצוג טכני של הפלטפורמה עם מזהי הפקודות לצורכי פיתוח """
+        return f"TradingPlatform(orders={list(self.orders_collection)})"

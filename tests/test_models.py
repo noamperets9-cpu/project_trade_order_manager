@@ -73,6 +73,15 @@ def test_platform_rejects_duplicate_id_and_sums_volume(market_order):
     assert platform.get_total_volume() == 1100.0  # 10*100 + 2*50
 
 
+def test_platform_and_portfolio_have_readable_representations(market_order):
+    platform = TradingPlatform()
+    platform.add_order(market_order)
+
+    assert str(platform) == "פלטפורמת מסחר: 1 פקודות, שווי כולל 1000.0"
+    assert repr(platform) == "TradingPlatform(orders=['M1'])"
+    assert repr(Portfolio(500)) == "Portfolio(balance=500, holdings={})"
+
+
 def test_portfolio_does_not_reserve_more_than_balance():
     portfolio = Portfolio(1000)
 
