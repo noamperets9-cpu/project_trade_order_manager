@@ -247,8 +247,7 @@
     ├── test_reports.py             # סיכום המדיניות (בדיקות ה-TDD)
     ├── test_async_processing.py    # סדרתי מול אסינכרוני, סדר הקלט כשסדר הסיום שונה
     ├── test_threaded_processing.py # מספר האישורים והיתרה הסופית עם Lock
-    ├── test_gemini_analyzer.py     # הדוח, הסיכום והצ'אט מול לקוח Gemini מדומה (ללא רשת)
-    └── test_console_ui.py          # תצוגת עברית בטרמינל
+    └── test_gemini_analyzer.py     # הדוח, הסיכום והצ'אט מול לקוח Gemini מדומה (ללא רשת)
 ```
 
 ### 4. החלטות תכנון מרכזיות
@@ -263,7 +262,7 @@
 
 ### 5. הוכחות שהמערכת עובדת
 
-* **בדיקות:** 83 בדיקות אוטומטיות, כולן עוברות (`python -m pytest`), ללא רשת, ללא מפתח API וללא המתנות ה-Retry האמיתיות:
+* **בדיקות:** 76 בדיקות אוטומטיות, כולן עוברות (`python -m pytest`), ללא רשת, ללא מפתח API וללא המתנות ה-Retry האמיתיות:
   * `test_models.py` (17): התנהגויות משלב 1 שנשמרו: ולידציה של כמות ומחיר, מחלקה אבסטרקטית, Stop-Loss לפני פקודת שוק, תור FIFO, מילונים, כפילות מזהים, ייצוג המחלקות, יתרה לא מספיקה, Context Manager.
   * `test_patterns.py` (22): Factory, Strategy, השירות העסקי, קריאה מקובץ (`tmp_path`), כשל בשער.
   * `test_api_client.py` (10): הצלחה, Timeout עם 3 ניסיונות, הצלחה אחרי כשל זמני, שגיאת HTTP, שדה חסר, JSON פגום, ערך לא חוקי.
@@ -271,7 +270,7 @@
   * `test_reports.py` (4): סיכום המדיניות (TDD).
   * `test_async_processing.py` (4): תוצאות זהות בשתי הגרסאות, סדר הקלט כשסדר הסיום הפוך, ריצה בחפיפה.
   * `test_threaded_processing.py` (4): מספר האישורים והיתרה הסופית עם 2, 3 ו-20 Threads.
-  * `test_gemini_analyzer.py` (13) ו-`test_console_ui.py` (7): ניתוח ה-AI ותצוגת הטרמינל.
+  * `test_gemini_analyzer.py` (13): ניתוח ה-AI.
 * **חיבור אמיתי** (`python main.py --online --no-ai`, 2.11.2026):
   ```text
   מצב הרצה: מול השירות האמיתי (Yahoo Finance)
