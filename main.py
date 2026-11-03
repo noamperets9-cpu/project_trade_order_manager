@@ -10,9 +10,13 @@ from project_name.processing import (
     process_regular_queue,
     process_priority_queue,
     demonstrate_comprehensions,
-    demonstrate_sorting
+    demonstrate_sorting,
+    process_order_batch,
+    manage_active_symbols,
+    build_order_dictionaries,
+    describe_symbol_counts,
 )
-from project_name.iterators import OrderCollection, run_lazy_pipeline
+from project_name.iterators import OrderCollection, filter_urgent_orders, run_lazy_pipeline
 from project_name.context_managers import OrderProcessingContext
 from project_name.strategies import FullBalancePolicy, RiskLimitPolicy
 from project_name.services import OrderApprovalService
@@ -199,6 +203,22 @@ def main(online: bool = False, use_ai: bool = True):
         ui.info("תור עדיפויות (Heap) - הפקודה הדחופה ביותר נשלפה ראשונה:")
         ui.note(f"{urgent.order_id} ({urgent.symbol}) | priority {urgent.get_priority()}")
 
+    ui.subheading("tuple, list ו-*")
+    batch_summary, working_list = process_order_batch("morning", *all_orders[:4])
+    batch_name, batch_size, first_order = batch_summary  # פריקת הרשומה הקבועה
+    ui.info(f"אצווה '{batch_name}': {batch_size} פקודות, הראשונה {first_order.order_id} עברה לסוף הרשימה")
+    ui.note("  →  ".join(o.order_id for o in working_list))
+
+    ui.subheading("set - סמלים ייחודיים")
+    active_symbols = manage_active_symbols(all_orders)
+    ui.kv("מניות פעילות", len(active_symbols))
+    ui.kv("האם TSLA פעילה?", "כן" if "TSLA" in active_symbols else "לא")
+
+    ui.subheading("dict - איתור לפי מזהה וספירה לפי מניה")
+    orders_by_id, symbol_counts = build_order_dictionaries(all_orders)
+    ui.kv("איתור ORD1003", orders_by_id["ORD1003"].symbol if "ORD1003" in orders_by_id else "לא קיים")
+    ui.kv("פקודות לכל מניה", ", ".join(describe_symbol_counts(symbol_counts)))
+
     # ==========================================
     # 4. עיבוד אוספים ומיון (Comprehensions & Sorting)
     # ==========================================
@@ -230,7 +250,16 @@ def main(online: bool = False, use_ai: bool = True):
     # ==========================================
     # 6. צינור עיבוד עצל (Lazy Pipeline)
     # ==========================================
-    ui.section(6, "צינור עיבוד עצל", "Lazy Pipeline")
+    ui.section(6, "Generator וצינור עיבוד עצל", "yield & Lazy Pipeline")
+
+    ui.subheading("Generator - רק פקודות חירום")
+    urgent_orders = filter_urgent_orders(all_orders)  # עדיין לא עובדה אף פקודה
+    ui.info(f"next → {next(urgent_orders).order_id}")
+    for order in urgent_orders:  # ממשיך מהמקום שבו next עצר
+        ui.info(f"for  → {order.order_id}")
+    ui.note(f"אחרי הסיום אין עוד פריטים: {list(urgent_orders)}. למעבר חוזר יוצרים Generator חדש")
+
+    ui.subheading("Lazy Pipeline")
     pipeline = run_lazy_pipeline(all_orders)
 
     try:
